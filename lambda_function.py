@@ -1,6 +1,6 @@
 from server import Chatbot
+from classifier import Classifier
 import json
-
 
 def lambda_handler(event, context):
     path: str = event["requestContext"]["http"]["path"]
@@ -14,8 +14,16 @@ def lambda_handler(event, context):
             body["context"] = []
         context = body["context"]
 
-        bot: Chatbot = Chatbot(context)
+        classifier = Classifier("rules.csv")
+
+        bot: Chatbot = Chatbot(context, classifier=classifier)
         reply = bot.send_message(message)
+
+        if len(bot.messages_history) > 10:
+            scores = bot.evaluate()
+            # TODO generate unique ID for every session in start_chat, then pass it in /reply
+            with open("/tmp/evaluation.json", "wt") as f:
+                f.write(scores)
     else:
         return {
             "statusCode": 400,
