@@ -28,10 +28,11 @@ def lambda_handler(event, context):
         if body.get("counter", 0) % 5 == 4:
             try:
                 scores = json.loads(bot.evaluate())
+                scores = sorted(scores.items(), key=lambda item: -item[1])
                 print(scores)
                 scores = {
                     k: v
-                    for k, v in sorted(scores.items(), key=lambda item: -item[1])
+                    for k, v in scores.items()
                     if v > 0
                 }
                 total_score = sum(filter(lambda v: v > 1, scores.values()))
@@ -39,6 +40,8 @@ def lambda_handler(event, context):
                 if total_score > THRESHOLD:
                     category, scores = classifier.classify(scores)
                     scores = {k: v for k, v in scores.items() if v > 1}
+                    bot.ask_for_reply("Based on evaluation. the patient currently has " + category + " symptoms", "system")
+                    print(scores)
             except Exception as e:
                 print(e)
                 pass
@@ -64,6 +67,7 @@ def lambda_handler(event, context):
 
 
 if __name__ == "__main__":
+    messages_count = 0
     dummy_request = {
         "requestContext": {
             "http": {
@@ -80,6 +84,7 @@ if __name__ == "__main__":
         dummy_request = {
             "requestContext": {"http": {"path": "/reply"}},
             "body": json.dumps(
-                {"message": message, "context": resp["context"], "counter": 5}
+                {"message": message, "context": resp["context"], "counter": messages_count}
             ),
         }
+        messages_count += 1
