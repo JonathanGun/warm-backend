@@ -1,10 +1,6 @@
-# Warm Backend
+# Bestie by Warm Backend
 
-// TODO danial
-
-This project is part of Warm Application in [Garuda Hacks 4.0 hackathon](https://garuda-hacks.devpost.com/). Warm is a xxx app that helps people to xxx
-
-Assessment assistant using OpenAI's GPT (generative pre-trained transformer), pre-prompted to assist user understanding what it needs.
+This project serves backend part of Bestie. Bestie is a health issues assessment tool that utilize conversational AI. Bestie revolutionizes how we do health issues assessment, traditionally by doing self-assessment check list into light conversation with AI chatbot. The conversation data then compiled into concise statements that integrates seamlessly into other features. This project is a submission for [Garuda Hacks 4.0 hackathon](https://garuda-hacks.devpost.com/).
 
 ## Requirements
 
@@ -13,7 +9,6 @@ Assessment assistant using OpenAI's GPT (generative pre-trained transformer), pr
 ## Libraries Used
 
 1. [OpenAI](https://platform.openai.com/docs/api-reference?lang=python)
-2. [HuggingFace Transformers](https://huggingface.co/docs/transformers/index)
 
 ## Local Development
 
@@ -42,40 +37,16 @@ venv\Scripts\activate.bat
 python -m pip install -r requirements.txt
 ```
 
-3. Invoke function
+3. Start interactive session
 
 ```bash
-python -c ''
+python lambda_function.py
 ```
 
-## Deployment (TODO)
+## Deployment
 
-Deployed to GCP Cloud Function using Terraform
+Deployed as a serverless service to AWS Lambda via AWS Console
 
 ### Requirements
 
-1. [Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
-2. [GCP account](https://cloud.google.com/free/); you can use free credit, or use [free tier for cloud functions](https://cloud.google.com/free/docs/free-cloud-features#cloud-functions)
-3. [gcloud cli](https://cloud.google.com/sdk/gcloud)
-
-### Steps
-
-1. Init terraform
-
-```bash
-terraform init
-```
-
-2. 
-
-```bash
-terraform apply
-```
-
-### Clean up Resources
-
-To keep your billing account healthy, you can clean up unused resource after you are finished with the project
-
-```bash
-terraform destroy
-```
+1. [AWS account](https://aws.amazon.com/resources/create-account/)
