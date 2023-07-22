@@ -25,7 +25,7 @@ def lambda_handler(event, context):
         bot: Chatbot = Chatbot(context, classifier=classifier)
         reply = bot.send_message(message)
 
-        if body.get("counter", 1) % 5 == 0:
+        if body.get("counter", 0) % 5 == 4:
             try:
                 scores = json.loads(bot.evaluate())
                 print(scores)
