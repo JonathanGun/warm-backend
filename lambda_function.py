@@ -37,7 +37,8 @@ def lambda_handler(event, context):
                 total_score = sum(filter(lambda v: v > 1, scores.values()))
                 print(total_score)
                 if total_score > THRESHOLD:
-                    category = classifier.classify(scores)
+                    category, scores = classifier.classify(scores)
+                    scores = {k: v for k, v in scores.items() if v > 1}
             except Exception as e:
                 print(e)
                 pass

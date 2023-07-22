@@ -23,9 +23,11 @@ class Classifier:
         for name, symptoms in categories_dict.items():
             self.categories.append(Category(name, symptoms))
 
-    def classify(self, symptoms_scores: Dict[str, int]):
+    def classify(self, symptoms_scores_index: Dict[str, int]):
         scores = defaultdict(int)
-        for s_idx, s_score in symptoms_scores.items():
+        symptoms_scores = {}
+        for s_idx, s_score in symptoms_scores_index.items():
+            symptoms_scores[self.get_symptom_by_index] = s_score
             category = self.get_category_by_symptom_index(s_idx)
             if category is None:
                 continue
@@ -36,7 +38,7 @@ class Classifier:
             if score > max_score and name != 'General':
                 max_name = name
                 max_score = score
-        return max_name
+        return max_name, symptoms_scores
 
     def get_classes(self) -> List[str]:
         return list(map(lambda c: c.name, self.categories))
@@ -49,6 +51,13 @@ class Classifier:
         if category is None:
             return None
         return category.symptoms
+
+    def get_symptom_by_index(self, s_idx: str):
+        for category in self.categories:
+            for symptom in category.symptoms:
+                if s_idx == symptom[0]:
+                    return symptom
+        return None
 
     def get_category_by_symptom_index(self, s_idx: str):
         for category in self.categories:
