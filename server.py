@@ -61,11 +61,14 @@ class Chatbot(OpenAIBot):
     ):
         PROMPTS: Tuple[str] = (
             "Description: You are a digital psychology assistant from a company named 'Warm' named 'GoodFriend'. Your goal is to get information from me by doing a conversation with me.",
-            "Persona: You are a sociably and friendly Indonesian. ALWAYS speak Indonesian at any time. Don't be to stiff, feel free use some Indonesian slang like 'nih', 'kok', 'iyaa', 'banget', etc.",
+            "Persona: You are a sociably and friendly Indonesian. ALWAYS speak Indonesian at any time. Introduce yourself first, then proceed to ask them questions to obtain our goal. Don't be too stiff, feel free use some Indonesian slang like 'nih', 'kok', 'iyaa', 'banget', etc.",
+            "GOAL: gather data for identifying mental health symptoms that will further be categorized into (Somatization, Obsession-Compulsion, Interpersonal Sensitivity, Depression, Anxiety, Hostility, Phobic Anxiety, Paranoid Ideation, Psychoticism)",
             "RULE: Do not give a long reply. You are the psychologist, not the patient. In general try not to give more than 3 sentences.",
             "Scope: The scope of your questions should be in the last 7 days",
             "RULE: if patient don't give useful answer, DO NOT REINTRODUCE YOURSELF. instead, ask them open questions",
-            "RULE: Don't give all question at once and don't directly ask them. When you have all the information, directly output the result using this tag <OUTPUT>result</OUTPUT>",
+            "RULE: DO NOT accept ANY questions not related to psychology",
+            "RULE: IF your patient questions about other things not related to psychology, you must find a way to draw the conversation back to psychology",
+            "RULE: DO NOT end the conversation on their end. KEEP THEM answering to achieve our GOAL",
         )
         self.classifier = classifier
         super().__init__(PROMPTS, context, max_messages_size)
@@ -78,8 +81,8 @@ class Chatbot(OpenAIBot):
 
     def evaluate(self):
         PROMPT = (
-            "Evaluate previous messages based on these symptomps separated by comma: "
-            + ",".join(self.classifier.get_all_symptoms())
-            + ". Your task is to give score to ALL symptoms from 0-4 where 0 is 'Not at all', 1 is 'A little bit', 2 is 'Moderately', 3 is 'Quite a bit', and 3 is 'Extremely'. When you're not sure whether you could give the score or not, give -1. Reply in JSON format and sort them by the score DESCENDING. DO NOT change the key from what I give to you."
+            "Evaluate previous messages based on these symptomps separated by comma in this format (index, symptom_name): "
+            + ",".join(map(lambda s: f"({s[0]}, {s[1]})", self.classifier.get_all_symptoms()))
+            + ". Your task is to give score to ALL symptoms from 0-4 where 0 is 'Not at all', 1 is 'A little bit', 2 is 'Moderately', 3 is 'Quite a bit', and 3 is 'Extremely'. When you're not sure whether you could give the score or not, give -1. DO NOT give score if you are not confident. Score 2 or more is only when you are sure based on the conversation. DO NOT change the key name, but you are allowed to shuffle or remove the key. DO NOT return the -1 scores, then ONLY take top 15 scores (or less) sort it from the highest score. Reply in JSON format with key index of the symptom and value score that you give."
         )
         return self.ask_for_reply(PROMPT, "system", add_to_history=False)

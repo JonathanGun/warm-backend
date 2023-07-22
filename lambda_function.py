@@ -2,8 +2,14 @@ from server import Chatbot
 from classifier import Classifier
 import json
 
+THRESHOLD = 20
+
+
 def lambda_handler(event, context):
     path: str = event["requestContext"]["http"]["path"]
+    category = None
+    scores = None
+
     if path == "/":
         bot: Chatbot = Chatbot()
         reply = bot.start_chat()
@@ -19,11 +25,22 @@ def lambda_handler(event, context):
         bot: Chatbot = Chatbot(context, classifier=classifier)
         reply = bot.send_message(message)
 
-        if len(bot.messages_history) > 10:
-            scores = bot.evaluate()
-            # TODO generate unique ID for every session in start_chat, then pass it in /reply
-            with open("/tmp/evaluation.json", "wt") as f:
-                f.write(scores)
+        if body.get("counter", 1) % 5 == 0:
+            try:
+                scores = json.loads(bot.evaluate())
+                print(scores)
+                scores = {
+                    k: v
+                    for k, v in sorted(scores.items(), key=lambda item: -item[1])
+                    if v > 0
+                }
+                total_score = sum(filter(lambda v: v > 1, scores.values()))
+                print(total_score)
+                if total_score > THRESHOLD:
+                    category = classifier.classify(scores)
+            except Exception as e:
+                print(e)
+                pass
     else:
         return {
             "statusCode": 400,
@@ -32,7 +49,15 @@ def lambda_handler(event, context):
     return {
         "statusCode": 200,
         "body": json.dumps(
-            {"reply": reply, "context": list(bot.messages_history)}
+            {
+                "reply": reply,
+                "context": list(bot.messages_history),
+                "evaluation": {
+                    "finish": category is not None,
+                    "category": category,
+                    "scores": scores,
+                },
+            }
         ),
     }
 
@@ -47,9 +72,13 @@ if __name__ == "__main__":
     }
     while True:
         resp = json.loads(lambda_handler(dummy_request, None)["body"])
+        if resp["evaluation"]["finish"]:
+            print(resp["evaluation"])
         print(resp["reply"])
         message = input(">>> ")
         dummy_request = {
             "requestContext": {"http": {"path": "/reply"}},
-            "body": json.dumps({"message": message, "context": resp["context"]}),
+            "body": json.dumps(
+                {"message": message, "context": resp["context"], "counter": 5}
+            ),
         }
